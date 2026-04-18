@@ -210,9 +210,12 @@ export default function App() {
   const [cmsContent, setCmsContent] = useState(() => {
     const DEFAULT_CMS = {
       global: {
-        whatsapp: "33680521483",
+        whatsapp: "33644650375",
         email: "support@4kstream.fr",
-        brandName: "4KSTREAM"
+        brandName: "4KSTREAM",
+        logoIcon: "",
+        whatsappIcon: "",
+        adminPassword: "admin123"
       },
       hero: {
         title: "Meilleur Abonnement IPTV France 2025 -",
@@ -358,8 +361,10 @@ export default function App() {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled || currentPage !== 'home' ? 'py-4' : 'py-6'}`}>
         <div className={`max-w-7xl mx-auto px-8 flex items-center justify-between transition-all duration-500 ${isScrolled || currentPage !== 'home' ? (isLight ? 'bg-white/80 backdrop-blur-xl py-3 px-8 rounded-full shadow-sm border border-black/5' : 'bg-black/40 backdrop-blur-xl py-3 px-8 rounded-full border border-white/5') : ''}`}>
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => goTo('home')}>
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-500 ${isLight ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'}`}>
-              <Play size={14} fill="currentColor" />
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-500 overflow-hidden ${isLight ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'}`}>
+              {cmsContent.global?.logoIcon
+                ? <img src={cmsContent.global.logoIcon} alt="logo" className="w-full h-full object-cover" />
+                : <Play size={14} fill="currentColor" />}
             </div>
             <span className={`text-xl font-black font-display tracking-tighter transition-colors duration-500`}>
               {(cmsContent.global?.brandName || "4KSTREAM").split(' ')[0]}<span className={isLight ? 'text-blue-600' : 'text-primary'}>{(cmsContent.global?.brandName || "4K STREAM").split(' ').slice(1).join(' ')}</span>
@@ -410,7 +415,7 @@ export default function App() {
               <a href="#" className="text-4xl font-bold font-display" onClick={() => { goTo('blog'); setIsMobileMenuOpen(false); }}>Blog</a>
               <a href="#" className="text-4xl font-bold font-display" onClick={() => { goTo('contact'); setIsMobileMenuOpen(false); }}>Contact</a>
               <a 
-                href="https://wa.me/33680521483"
+                href="https://wa.me/33644650375"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`mt-10 py-5 rounded-xl font-bold text-lg text-center bg-blue-600 text-white`}
@@ -936,7 +941,6 @@ export default function App() {
               <li><a href="#" className="hover:opacity-50 transition-opacity">Conditions</a></li>
               <li><a href="#" className="hover:opacity-50 transition-opacity">Confidentialité</a></li>
               <li><a href="#" className="hover:opacity-50 transition-opacity">Remboursement</a></li>
-              <li><button onClick={() => navigate('/admin')} className="text-[10px] italic opacity-20 hover:opacity-100 transition-opacity">Admin</button></li>
             </ul>
           </div>
 
@@ -972,9 +976,11 @@ export default function App() {
         rel="noopener noreferrer"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className={`fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl bg-[#25D366] text-white`}
+        className={`fixed bottom-8 right-8 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl bg-[#25D366] text-white overflow-hidden`}
       >
-        <MessageCircle size={28} />
+        {cmsContent.global?.whatsappIcon
+          ? <img src={cmsContent.global.whatsappIcon} alt="whatsapp" className="w-full h-full object-cover" />
+          : <MessageCircle size={28} />}
       </motion.a>
     </motion.div>
   );
@@ -1171,15 +1177,30 @@ const AdminPage = ({ content, onChange, isAuthenticated, onLogin, onLogout }: an
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('hero');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMsg, setPasswordMsg] = useState('');
 
   const handleLogin = (e: any) => {
     e.preventDefault();
-    if (password === 'admin123') { // Simple password for demo
+    const stored = content.global?.adminPassword || 'admin123';
+    if (password === stored) {
       onLogin();
       setError('');
     } else {
       setError('Mot de passe incorrect');
     }
+  };
+
+  const handlePasswordChange = (e: any) => {
+    e.preventDefault();
+    if (newPassword.length < 6) { setPasswordMsg('Minimum 6 caractères'); return; }
+    if (newPassword !== confirmPassword) { setPasswordMsg('Les mots de passe ne correspondent pas'); return; }
+    onChange({ ...content, global: { ...content.global, adminPassword: newPassword } });
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordMsg('Mot de passe mis à jour !');
+    setTimeout(() => setPasswordMsg(''), 3000);
   };
 
   if (!isAuthenticated) {
@@ -1465,15 +1486,108 @@ const AdminPage = ({ content, onChange, isAuthenticated, onLogin, onLogout }: an
                   <label className="text-xs font-bold uppercase tracking-widest opacity-40">Nom de la Marque</label>
                   <input type="text" value={content.global.brandName} onChange={(e) => updateGlobal('brandName', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-black/10 text-sm font-bold" />
                 </div>
+
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest opacity-40">Numéro WhatsApp (Format: 336... sans +)</label>
-                  <input type="text" value={content.global.whatsapp} onChange={(e) => updateGlobal('whatsapp', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-black/10 text-sm font-mono" />
-                  <p className="text-[10px] text-blue-600">Note: Utilisé pour tous les liens WhatsApp du site.</p>
+                  <label className="text-xs font-bold uppercase tracking-widest opacity-40">Numéro WhatsApp (sans +)</label>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={content.global.whatsapp}
+                      onChange={(e) => updateGlobal('whatsapp', e.target.value.replace(/\D/g, ''))}
+                      placeholder="33644650375"
+                      className="flex-1 px-4 py-3 rounded-xl border border-black/10 text-sm font-mono focus:ring-2 focus:ring-blue-600 outline-none"
+                    />
+                    <a
+                      href={`https://wa.me/${content.global.whatsapp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-3 rounded-xl bg-[#25D366] text-white text-xs font-bold flex items-center gap-2 whitespace-nowrap hover:bg-green-600 transition-all"
+                    >
+                      <MessageCircle size={14} /> Tester
+                    </a>
+                  </div>
+                  <p className="text-[10px] text-blue-600">Format: 336... sans + ni espaces. Ex: 33644650375</p>
+                  {content.global.whatsapp && (
+                    <p className="text-xs font-mono text-green-600">
+                      +{content.global.whatsapp.substring(0,2)} {content.global.whatsapp.substring(2,3)} {content.global.whatsapp.substring(3,5)} {content.global.whatsapp.substring(5,7)} {content.global.whatsapp.substring(7,9)} {content.global.whatsapp.substring(9,11)}
+                    </p>
+                  )}
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest opacity-40">Adresse Email Support</label>
                   <input type="text" value={content.global.email} onChange={(e) => updateGlobal('email', e.target.value)} className="w-full px-4 py-3 rounded-xl border border-black/10 text-sm font-mono" />
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest opacity-40">Icône Logo (URL image)</label>
+                  <div className="flex gap-3 items-center">
+                    <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center overflow-hidden shrink-0">
+                      {content.global.logoIcon
+                        ? <img src={content.global.logoIcon} alt="" className="w-full h-full object-cover" />
+                        : <Play size={14} fill="white" color="white" />}
+                    </div>
+                    <input
+                      type="text"
+                      value={content.global.logoIcon || ''}
+                      onChange={(e) => updateGlobal('logoIcon', e.target.value)}
+                      placeholder="https://... (laisser vide = icône par défaut)"
+                      className="flex-1 px-4 py-3 rounded-xl border border-black/10 text-xs font-mono focus:ring-2 focus:ring-blue-600 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest opacity-40">Icône Bouton WhatsApp (URL image)</label>
+                  <div className="flex gap-3 items-center">
+                    <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center overflow-hidden shrink-0">
+                      {content.global.whatsappIcon
+                        ? <img src={content.global.whatsappIcon} alt="" className="w-full h-full object-cover" />
+                        : <MessageCircle size={18} color="white" />}
+                    </div>
+                    <input
+                      type="text"
+                      value={content.global.whatsappIcon || ''}
+                      onChange={(e) => updateGlobal('whatsappIcon', e.target.value)}
+                      placeholder="https://... (laisser vide = icône par défaut)"
+                      className="flex-1 px-4 py-3 rounded-xl border border-black/10 text-xs font-mono focus:ring-2 focus:ring-blue-600 outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-black/5 space-y-4">
+                <h4 className="text-sm font-bold">Changer le mot de passe Admin</h4>
+                <form onSubmit={handlePasswordChange} className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest opacity-40">Nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-3 rounded-xl border border-black/10 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest opacity-40">Confirmer le mot de passe</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-3 rounded-xl border border-black/10 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+                    />
+                  </div>
+                  <div className="md:col-span-2 flex items-center gap-4">
+                    <button type="submit" className="px-6 py-3 rounded-xl bg-blue-600 text-white text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
+                      Mettre à jour
+                    </button>
+                    {passwordMsg && (
+                      <p className={`text-xs font-bold ${passwordMsg.includes('!') ? 'text-green-600' : 'text-red-500'}`}>{passwordMsg}</p>
+                    )}
+                  </div>
+                </form>
               </div>
             </div>
           )}
@@ -1707,7 +1821,7 @@ const ContactPage = ({ isLight, global }: { isLight: boolean; global: any }) => 
             <h3 className="text-xl font-bold text-black">Informations de Contact</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {[
-                { icon: MessageCircle, title: "WhatsApp", info: `+${(global?.whatsapp || "33680521483").substring(0, 2)} ${(global?.whatsapp || "33680521483").substring(2, 3)} ${(global?.whatsapp || "33680521483").substring(3, 5)} ${(global?.whatsapp || "33680521483").substring(5, 7)} ${(global?.whatsapp || "33680521483").substring(7, 9)} ${(global?.whatsapp || "33680521483").substring(9, 11)}`, sub: "Réponse rapide sous 15 minutes", link: `https://wa.me/${global?.whatsapp || "33680521483"}` },
+                { icon: MessageCircle, title: "WhatsApp", info: `+${(global?.whatsapp || "33644650375").substring(0, 2)} ${(global?.whatsapp || "33644650375").substring(2, 3)} ${(global?.whatsapp || "33644650375").substring(3, 5)} ${(global?.whatsapp || "33644650375").substring(5, 7)} ${(global?.whatsapp || "33644650375").substring(7, 9)} ${(global?.whatsapp || "33644650375").substring(9, 11)}`, sub: "Réponse rapide sous 15 minutes", link: `https://wa.me/${global?.whatsapp || "33644650375"}` },
                 { icon: Globe, title: "Email", info: global?.email || "support@4kstream.fr", sub: "Réponse sous 24 heures", link: `mailto:${global?.email || "support@4kstream.fr"}` },
                 { icon: Clock, title: "Horaires", info: "24h/24 - 7j/7", sub: "Support disponible en permanence" },
                 { icon: Award, title: "Service", info: "France & Europe", sub: "Service disponible dans toute l'Europe" },
@@ -1913,7 +2027,7 @@ const InstallationPage = ({ isLight }: { isLight: boolean }) => {
 
           <div className={`mt-12 p-6 rounded-2xl border ${isLight ? 'bg-blue-50/50 border-blue-100' : 'bg-blue-600/5 border-blue-600/10'}`}>
             <p className={`text-sm font-medium ${isLight ? 'text-black/60' : 'text-white/60'}`}>
-              <span className="font-bold text-blue-600">Besoin d'aide ?</span> Notre équipe de support est disponible 24/7 via <a href="https://wa.me/33680521483" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">WhatsApp</a> pour vous accompagner dans l'installation.
+              <span className="font-bold text-blue-600">Besoin d'aide ?</span> Notre équipe de support est disponible 24/7 via <a href="https://wa.me/33644650375" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">WhatsApp</a> pour vous accompagner dans l'installation.
             </p>
           </div>
         </motion.div>
